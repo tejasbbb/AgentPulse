@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentPulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #1c1a17;
+    --bg-panel: #242220;
+    --bg-card: #2c2a27;
+    --bg-card-hover: #343230;
+    --border-subtle: rgba(255, 245, 230, 0.06);
+    --border-medium: rgba(255, 245, 230, 0.1);
+
+    --text-primary: #f5f0e8;
+    --text-secondary: rgba(245, 240, 232, 0.6);
+    --text-tertiary: rgba(245, 240, 232, 0.3);
+    --text-ghost: rgba(245, 240, 232, 0.15);
+
+    --amber: #e8a84c;
+    --amber-glow: rgba(232, 168, 76, 0.15);
+    --amber-dim: rgba(232, 168, 76, 0.08);
+    --mint: #7ecba1;
+    --mint-glow: rgba(126, 203, 161, 0.12);
+    --coral: #e07a5f;
+    --coral-glow: rgba(224, 122, 95, 0.12);
+    --slate-blue: #8b9fc7;
+    --slate-blue-glow: rgba(139, 159, 199, 0.12);
+    --lavender: #b0a0d4;
+
+    --font-display: 'Instrument Serif', Georgia, serif;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg-deep);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ── Menu Bar ── */
+  .menu-bar {
+    width: 100%;
+    height: 37px;
+    background: rgba(28, 26, 23, 0.92);
+    backdrop-filter: blur(40px) saturate(1.8);
+    -webkit-backdrop-filter: blur(40px) saturate(1.8);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 16px;
+    gap: 20px;
+    border-bottom: 1px solid var(--border-subtle);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .menu-bar-item {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 400;
+    color: rgba(245, 240, 232, 0.85);
+    cursor: default;
+    letter-spacing: -0.1px;
+  }
+
+  .menu-bar-icon {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  /* Pulsing orb icon */
+  .orb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, var(--amber), #c4782e);
+    box-shadow:
+      0 0 8px rgba(232, 168, 76, 0.4),
+      0 0 20px rgba(232, 168, 76, 0.15);
+    animation: orb-breathe 3s ease-in-out infinite;
+  }
+
+  @keyframes orb-breathe {
+    0%, 100% { box-shadow: 0 0 8px rgba(232, 168, 76, 0.4), 0 0 20px rgba(232, 168, 76, 0.15); transform: scale(1); }
+    50% { box-shadow: 0 0 12px rgba(232, 168, 76, 0.6), 0 0 30px rgba(232, 168, 76, 0.25); transform: scale(1.1); }
+  }
+
+  /* ── Dropdown Panel ── */
+  .dropdown-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    padding-right: 52px;
+  }
+
+  .dropdown {
+    width: 400px;
+    margin-top: 6px;
+    background: var(--bg-panel);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-medium);
+    box-shadow:
+      0 40px 80px rgba(0,0,0,0.55),
+      0 16px 32px rgba(0,0,0,0.3),
+      0 0 0 0.5px rgba(255, 245, 230, 0.04) inset;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Grain overlay */
+  .dropdown::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+    border-radius: inherit;
+  }
+
+  .dropdown > * { position: relative; z-index: 2; }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 18px 20px 14px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .header-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+  }
+
+  .header-live {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--amber);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+
+  .header-live-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--amber);
+    animation: live-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes live-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .header-time {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 300;
+    color: var(--text-tertiary);
+    letter-spacing: 0.5px;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 0 20px;
+  }
+
+  .divider-full {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 0;
+  }
+
+  /* ── Content ── */
+  .content {
+    max-height: 560px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(245, 240, 232, 0.08) transparent;
+  }
+
+  .content::-webkit-scrollbar { width: 5px; }
+  .content::-webkit-scrollbar-track { background: transparent; }
+  .content::-webkit-scrollbar-thumb {
+    background: rgba(245, 240, 232, 0.08);
+    border-radius: 3px;
+  }
+
+  /* ── Agents: Orbital View ── */
+  .agents-section {
+    padding: 16px 20px 12px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .orbitals-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .orbital-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    transition: background 0.2s ease, border-color 0.2s ease;
+    cursor: default;
+    animation: card-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .orbital-card:nth-child(1) { animation-delay: 0.05s; }
+  .orbital-card:nth-child(2) { animation-delay: 0.1s; }
+  .orbital-card:nth-child(3) { animation-delay: 0.15s; }
+  .orbital-card:nth-child(4) { animation-delay: 0.2s; }
+
+  @keyframes card-enter {
+    from { opacity: 0; transform: translateY(8px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .orbital-card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-medium);
+  }
+
+  /* Ring progress indicator */
+  .orbital-ring {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .orbital-ring svg {
+    width: 44px;
+    height: 44px;
+    transform: rotate(-90deg);
+  }
+
+  .orbital-ring .track {
+    fill: none;
+    stroke: var(--border-subtle);
+    stroke-width: 3;
+  }
+
+  .orbital-ring .progress {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .orbital-ring .progress.amber { stroke: var(--amber); filter: drop-shadow(0 0 4px var(--amber-glow)); }
+  .orbital-ring .progress.mint { stroke: var(--mint); filter: drop-shadow(0 0 4px var(--mint-glow)); }
+  .orbital-ring .progress.coral { stroke: var(--coral); filter: drop-shadow(0 0 4px var(--coral-glow)); }
+  .orbital-ring .progress.slate { stroke: var(--slate-blue); filter: drop-shadow(0 0 4px var(--slate-blue-glow)); }
+
+  .orbital-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .orbital-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .orbital-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    letter-spacing: -0.2px;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .orbital-source {
+    font-size: 8px;
+    font-weight: 600;
+    padding: 1px 4px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .orbital-source.claude {
+    background: var(--amber-dim);
+    color: var(--amber);
+  }
+
+  .orbital-source.codex {
+    background: var(--slate-blue-glow);
+    color: var(--slate-blue);
+  }
+
+  .orbital-task {
+    font-size: 10px;
+    color: var(--text-secondary);
+    line-height: 1.35;
+    margin-top: 3px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .orbital-model {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 300;
+    color: var(--text-ghost);
+    margin-top: 4px;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── Tasks ── */
+  .tasks-section {
+    padding: 14px 20px 12px;
+  }
+
+  .tasks-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .tasks-fraction {
+    font-family: var(--font-display);
+    font-size: 28px;
+    color: var(--text-primary);
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  .tasks-fraction span {
+    font-size: 16px;
+    color: var(--text-tertiary);
+  }
+
+  .tasks-counts {
+    display: flex;
+    gap: 12px;
+  }
+
+  .tasks-count {
+    font-size: 10px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .tasks-count-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .tasks-count-dot.running {
+    background: var(--amber);
+    box-shadow: 0 0 6px var(--amber-glow);
+    animation: live-pulse 2s ease-in-out infinite;
+  }
+
+  .tasks-count-dot.pending { background: var(--text-tertiary); }
+  .tasks-count-dot.done { background: var(--mint); }
+
+  .tasks-count.running { color: var(--amber); }
+  .tasks-count.pending { color: var(--text-tertiary); }
+  .tasks-count.done { color: var(--mint); }
+
+  /* Segmented progress bar */
+  .progress-segments {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 14px;
+    height: 4px;
+  }
+
+  .progress-segment {
+    border-radius: 2px;
+    flex: 1;
+    transition: all 0.4s ease;
+  }
+
+  .progress-segment.done {
+    background: var(--mint);
+    opacity: 0.7;
+  }
+
+  .progress-segment.running {
+    background: var(--amber);
+    animation: segment-pulse 2s ease-in-out infinite;
+  }
+
+  .progress-segment.pending {
+    background: var(--border-subtle);
+  }
+
+  @keyframes segment-pulse {
+    0%, 100% { opacity: 0.9; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Task rows */
+  .task-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(255, 245, 230, 0.03);
+    animation: row-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .task-row:last-child { border-bottom: none; }
+  .task-row:nth-child(1) { animation-delay: 0.08s; }
+  .task-row:nth-child(2) { animation-delay: 0.12s; }
+  .task-row:nth-child(3) { animation-delay: 0.16s; }
+  .task-row:nth-child(4) { animation-delay: 0.2s; }
+  .task-row:nth-child(5) { animation-delay: 0.24s; }
+
+  @keyframes row-enter {
+    from { opacity: 0; transform: translateX(-6px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .task-status-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 10px;
+  }
+
+  .task-status-icon.running {
+    border: 2px solid var(--amber);
+    animation: spin-slow 3s linear infinite;
+  }
+
+  .task-status-icon.running::after {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--amber);
+  }
+
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .task-status-icon.pending {
+    border: 1.5px dashed var(--text-ghost);
+  }
+
+  .task-status-icon.done {
+    background: var(--mint-glow);
+    border: none;
+  }
+
+  .task-status-icon.done::after {
+    content: '';
+    width: 8px;
+    height: 5px;
+    border-left: 1.5px solid var(--mint);
+    border-bottom: 1.5px solid var(--mint);
+    transform: rotate(-45deg) translateY(-1px);
+  }
+
+  .task-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .task-name {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.1px;
+  }
+
+  .task-name.faded { color: var(--text-tertiary); }
+
+  .task-agent {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 300;
+    color: var(--text-ghost);
+    margin-top: 1px;
+  }
+
+  /* ── File Stream ── */
+  .files-section {
+    padding: 14px 20px 10px;
+  }
+
+  .file-stream {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .file-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    transition: background 0.15s ease;
+    animation: file-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .file-row:nth-child(1) { animation-delay: 0.05s; }
+  .file-row:nth-child(2) { animation-delay: 0.09s; }
+  .file-row:nth-child(3) { animation-delay: 0.13s; }
+  .file-row:nth-child(4) { animation-delay: 0.17s; }
+  .file-row:nth-child(5) { animation-delay: 0.21s; }
+
+  @keyframes file-enter {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .file-row:hover { background: rgba(255, 245, 230, 0.03); }
+
+  .file-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .file-dot.hot { background: var(--amber); box-shadow: 0 0 6px var(--amber-glow); }
+  .file-dot.warm { background: var(--coral); opacity: 0.6; }
+  .file-dot.cool { background: var(--text-ghost); }
+
+  .file-path {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.2px;
+  }
+
+  .file-path .dir { color: var(--text-ghost); }
+
+  .file-ago {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 300;
+    color: var(--text-ghost);
+    flex-shrink: 0;
+    letter-spacing: 0.3px;
+    min-width: 40px;
+    text-align: right;
+  }
+
+  /* ── Stats Bar ── */
+  .stats-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 14px 20px;
+    background: rgba(0,0,0,0.15);
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .stat-number {
+    font-family: var(--font-display);
+    font-size: 24px;
+    color: var(--text-primary);
+    line-height: 1;
+    letter-spacing: -0.5px;
+  }
+
+  .stat-number.amber { color: var(--amber); }
+  .stat-number.mint { color: var(--mint); }
+
+  .stat-unit {
+    font-size: 9px;
+    font-weight: 400;
+    color: var(--text-tertiary);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+
+  .stat-divider {
+    width: 1px;
+    height: 28px;
+    background: var(--border-subtle);
+  }
+
+  /* ── Footer ── */
+  .footer {
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-quit {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-ghost);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 0;
+    transition: color 0.2s ease;
+    letter-spacing: 0.2px;
+  }
+
+  .footer-quit:hover { color: var(--text-tertiary); }
+
+  .footer-version {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 300;
+    color: var(--text-ghost);
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Approvals ── */
+  .approvals-section {
+    padding: 14px 20px 12px;
+  }
+
+  .approvals-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .approvals-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--coral);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+
+  .approvals-count-badge {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--coral);
+    color: var(--bg-deep);
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    letter-spacing: 0;
+  }
+
+  .approval-card {
+    background: var(--bg-card);
+    border: 1px solid rgba(224, 122, 95, 0.15);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    animation: approval-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .approval-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--coral);
+    border-radius: 0 2px 2px 0;
+  }
+
+  .approval-card:nth-child(2) { animation-delay: 0.08s; }
+  .approval-card:nth-child(3) { animation-delay: 0.16s; }
+
+  @keyframes approval-enter {
+    from { opacity: 0; transform: translateY(6px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .approval-card:hover {
+    border-color: rgba(224, 122, 95, 0.25);
+    background: var(--bg-card-hover);
+  }
+
+  .approval-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .approval-agent-name {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .approval-source-tag {
+    font-size: 8px;
+    font-weight: 600;
+    padding: 1px 4px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .approval-source-tag.claude {
+    background: var(--amber-dim);
+    color: var(--amber);
+  }
+
+  .approval-source-tag.codex {
+    background: var(--slate-blue-glow);
+    color: var(--slate-blue);
+  }
+
+  .approval-elapsed {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 300;
+    color: var(--text-ghost);
+    margin-left: auto;
+    letter-spacing: 0.3px;
+  }
+
+  .approval-type {
+    font-size: 9px;
+    font-weight: 500;
+    color: var(--coral);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+
+  .approval-detail {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-all;
+    border: 1px solid rgba(255, 245, 230, 0.03);
+  }
+
+  .approval-detail .cmd-prefix {
+    color: var(--text-ghost);
+    user-select: none;
+  }
+
+  .approval-detail .cmd-text {
+    color: var(--text-primary);
+  }
+
+  .approval-detail .file-highlight {
+    color: var(--amber);
+  }
+
+  .approval-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .approval-btn {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 500;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 16px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    letter-spacing: 0.1px;
+  }
+
+  .approval-btn.approve {
+    background: var(--mint);
+    color: var(--bg-deep);
+  }
+
+  .approval-btn.approve:hover {
+    background: #8fd9b0;
+    box-shadow: 0 0 12px var(--mint-glow);
+  }
+
+  .approval-btn.approve:active {
+    transform: scale(0.97);
+  }
+
+  .approval-btn.deny {
+    background: rgba(255, 245, 230, 0.06);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .approval-btn.deny:hover {
+    background: rgba(224, 122, 95, 0.1);
+    color: var(--coral);
+    border-color: rgba(224, 122, 95, 0.2);
+  }
+
+  .approval-btn.deny:active {
+    transform: scale(0.97);
+  }
+
+  /* Keyboard shortcut hints */
+  .approval-kbd {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 400;
+    color: var(--text-ghost);
+    padding: 1px 4px;
+    background: rgba(255, 245, 230, 0.04);
+    border: 1px solid var(--border-subtle);
+    border-radius: 3px;
+    margin-left: 6px;
+    letter-spacing: 0.3px;
+  }
+
+  /* Menu bar notification badge */
+  .orb-wrapper {
+    position: relative;
+  }
+
+  .orb-badge {
+    position: absolute;
+    top: -4px;
+    right: -5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--coral);
+    border: 2px solid rgba(28, 26, 23, 0.92);
+    font-family: var(--font-mono);
+    font-size: 7px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: badge-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes badge-pop {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+  }
+
+  /* Approval section glow border */
+  .approvals-glow {
+    position: relative;
+  }
+
+  .approvals-glow::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    background: linear-gradient(135deg, rgba(224, 122, 95, 0.08), transparent 60%);
+    border-radius: var(--radius-md);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Stroke dasharray for 44px ring: circumference = 2 * pi * 17.5 ≈ 109.96 */
+</style>
+</head>
+<body>
+
+<!-- ── macOS Menu Bar ── -->
+<div class="menu-bar">
+  <span class="menu-bar-item">Control Center</span>
+  <div class="menu-bar-icon">
+    <div class="orb-wrapper">
+      <div class="orb"></div>
+      <div class="orb-badge">2</div>
+    </div>
+  </div>
+  <span class="menu-bar-item" style="font-variant-numeric: tabular-nums;">Sat Feb 22  3:14 PM</span>
+</div>
+
+<!-- ── Panel ── -->
+<div class="dropdown-wrapper">
+  <div class="dropdown">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <span class="header-title">AgentPulse</span>
+        <div class="header-live">
+          <div class="header-live-dot"></div>
+          Live
+        </div>
+      </div>
+      <span class="header-time">3 sec ago</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="content">
+
+      <!-- ── Awaiting Approval ── -->
+      <div class="approvals-section">
+        <div class="approvals-label-row">
+          <div class="approvals-badge">
+            Awaiting Approval
+            <div class="approvals-count-badge">2</div>
+          </div>
+        </div>
+
+        <!-- Approval 1: Bash command -->
+        <div class="approval-card">
+          <div class="approval-top">
+            <span class="approval-agent-name">researcher</span>
+            <span class="approval-source-tag claude">Claude</span>
+            <span class="approval-elapsed">8s ago</span>
+          </div>
+          <div class="approval-type">Bash Command</div>
+          <div class="approval-detail"><span class="cmd-prefix">$ </span><span class="cmd-text">npm install jsonwebtoken bcrypt</span></div>
+          <div class="approval-actions">
+            <button class="approval-btn deny">Deny<span class="approval-kbd">N</span></button>
+            <button class="approval-btn approve">Approve<span class="approval-kbd">Y</span></button>
+          </div>
+        </div>
+
+        <!-- Approval 2: File edit -->
+        <div class="approval-card">
+          <div class="approval-top">
+            <span class="approval-agent-name">Codex</span>
+            <span class="approval-source-tag codex">Codex</span>
+            <span class="approval-elapsed">3s ago</span>
+          </div>
+          <div class="approval-type">Edit File</div>
+          <div class="approval-detail"><span class="file-highlight">api/handlers/users.py</span>
+<span class="cmd-prefix">-  </span><span style="color: var(--coral);">def get_user(id):</span>
+<span class="cmd-prefix">+  </span><span style="color: var(--mint);">async def get_user(id: int) -> User:</span></div>
+          <div class="approval-actions">
+            <button class="approval-btn deny">Deny<span class="approval-kbd">N</span></button>
+            <button class="approval-btn approve">Approve<span class="approval-kbd">Y</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- ── Agents: Orbital Cards ── -->
+      <div class="agents-section">
+        <div class="section-label">Agents</div>
+
+        <div class="orbitals-grid">
+
+          <!-- Agent 1: team-lead -->
+          <div class="orbital-card">
+            <div class="orbital-ring">
+              <svg viewBox="0 0 44 44">
+                <circle class="track" cx="22" cy="22" r="17.5"/>
+                <circle class="progress amber" cx="22" cy="22" r="17.5"
+                  stroke-dasharray="109.96"
+                  stroke-dashoffset="22"/>
+              </svg>
+              <div class="orbital-center">80%</div>
+            </div>
+            <div class="orbital-info">
+              <div class="orbital-name">
+                team-lead
+                <span class="orbital-source claude">Claude</span>
+              </div>
+              <div class="orbital-task">Coordinating auth feature across 3 agents</div>
+              <div class="orbital-model">opus 4.6</div>
+            </div>
+          </div>
+
+          <!-- Agent 2: researcher -->
+          <div class="orbital-card">
+            <div class="orbital-ring">
+              <svg viewBox="0 0 44 44">
+                <circle class="track" cx="22" cy="22" r="17.5"/>
+                <circle class="progress coral" cx="22" cy="22" r="17.5"
+                  stroke-dasharray="109.96"
+                  stroke-dashoffset="55"/>
+              </svg>
+              <div class="orbital-center">50%</div>
+            </div>
+            <div class="orbital-info">
+              <div class="orbital-name">
+                researcher
+                <span class="orbital-source claude">Claude</span>
+              </div>
+              <div class="orbital-task">Implementing JWT middleware for /api routes</div>
+              <div class="orbital-model">opus 4.6</div>
+            </div>
+          </div>
+
+          <!-- Agent 3: implementer -->
+          <div class="orbital-card">
+            <div class="orbital-ring">
+              <svg viewBox="0 0 44 44">
+                <circle class="track" cx="22" cy="22" r="17.5"/>
+                <circle class="progress mint" cx="22" cy="22" r="17.5"
+                  stroke-dasharray="109.96"
+                  stroke-dashoffset="77"/>
+              </svg>
+              <div class="orbital-center">30%</div>
+            </div>
+            <div class="orbital-info">
+              <div class="orbital-name">
+                implementer
+                <span class="orbital-source claude">Claude</span>
+              </div>
+              <div class="orbital-task">Writing integration tests for login flow</div>
+              <div class="orbital-model">sonnet 4.6</div>
+            </div>
+          </div>
+
+          <!-- Agent 4: Codex -->
+          <div class="orbital-card">
+            <div class="orbital-ring">
+              <svg viewBox="0 0 44 44">
+                <circle class="track" cx="22" cy="22" r="17.5"/>
+                <circle class="progress slate" cx="22" cy="22" r="17.5"
+                  stroke-dasharray="109.96"
+                  stroke-dashoffset="33"/>
+              </svg>
+              <div class="orbital-center">70%</div>
+            </div>
+            <div class="orbital-info">
+              <div class="orbital-name">
+                Codex
+                <span class="orbital-source codex">Codex</span>
+              </div>
+              <div class="orbital-task">Refactoring user handlers in backend API</div>
+              <div class="orbital-model">o3</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- ── Tasks ── -->
+      <div class="tasks-section">
+        <div class="tasks-header">
+          <div>
+            <div class="section-label" style="margin-bottom: 6px;">Tasks</div>
+            <div class="tasks-fraction">5<span>/8</span></div>
+          </div>
+          <div class="tasks-counts">
+            <div class="tasks-count running"><div class="tasks-count-dot running"></div>2</div>
+            <div class="tasks-count pending"><div class="tasks-count-dot pending"></div>1</div>
+            <div class="tasks-count done"><div class="tasks-count-dot done"></div>5</div>
+          </div>
+        </div>
+
+        <!-- Segmented progress: 5 done, 2 running, 1 pending -->
+        <div class="progress-segments">
+          <div class="progress-segment done"></div>
+          <div class="progress-segment done"></div>
+          <div class="progress-segment done"></div>
+          <div class="progress-segment done"></div>
+          <div class="progress-segment done"></div>
+          <div class="progress-segment running"></div>
+          <div class="progress-segment running"></div>
+          <div class="progress-segment pending"></div>
+        </div>
+
+        <!-- Active tasks first -->
+        <div class="task-row">
+          <div class="task-status-icon running"></div>
+          <div class="task-text">
+            <div class="task-name">Implement JWT auth middleware</div>
+            <div class="task-agent">researcher</div>
+          </div>
+        </div>
+
+        <div class="task-row">
+          <div class="task-status-icon running"></div>
+          <div class="task-text">
+            <div class="task-name">Write integration tests for login flow</div>
+            <div class="task-agent">implementer</div>
+          </div>
+        </div>
+
+        <div class="task-row">
+          <div class="task-status-icon pending"></div>
+          <div class="task-text">
+            <div class="task-name">Update API documentation</div>
+          </div>
+        </div>
+
+        <div class="task-row">
+          <div class="task-status-icon done"></div>
+          <div class="task-text">
+            <div class="task-name faded">Set up project structure</div>
+          </div>
+        </div>
+
+        <div class="task-row">
+          <div class="task-status-icon done"></div>
+          <div class="task-text">
+            <div class="task-name faded">Create user data models</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- ── File Stream ── -->
+      <div class="files-section">
+        <div class="section-label">File Activity</div>
+
+        <div class="file-stream">
+          <div class="file-row">
+            <div class="file-dot hot"></div>
+            <span class="file-path"><span class="dir">src/middleware/</span>auth.ts</span>
+            <span class="file-ago">12s</span>
+          </div>
+          <div class="file-row">
+            <div class="file-dot hot"></div>
+            <span class="file-path"><span class="dir">src/routes/</span>login.ts</span>
+            <span class="file-ago">30s</span>
+          </div>
+          <div class="file-row">
+            <div class="file-dot warm"></div>
+            <span class="file-path"><span class="dir">tests/</span>auth.test.ts</span>
+            <span class="file-ago">1m</span>
+          </div>
+          <div class="file-row">
+            <div class="file-dot warm"></div>
+            <span class="file-path">package.json</span>
+            <span class="file-ago">2m</span>
+          </div>
+          <div class="file-row">
+            <div class="file-dot cool"></div>
+            <span class="file-path"><span class="dir">api/handlers/</span>users.py</span>
+            <span class="file-ago">3m</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="divider-full"></div>
+
+    <!-- ── Stats Bar ── -->
+    <div class="stats-bar">
+      <div class="stat">
+        <div class="stat-number amber">4</div>
+        <div class="stat-unit">Active</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-number">47</div>
+        <div class="stat-unit">Messages</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-number">132</div>
+        <div class="stat-unit">Tool Calls</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-number mint">98%</div>
+        <div class="stat-unit">Success</div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <button class="footer-quit">Quit</button>
+      <span class="footer-version">v1.0.0</span>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
