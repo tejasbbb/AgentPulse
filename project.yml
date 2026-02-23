@@ -1,0 +1,56 @@
+name: AgentPulse
+options:
+  minimumXcodeGenVersion: 2.39.0
+settings:
+  base:
+    SWIFT_VERSION: 6.0
+    MACOSX_DEPLOYMENT_TARGET: 15.0
+    CODE_SIGN_STYLE: Automatic
+
+configs:
+  Debug: debug
+  Release: release
+
+targets:
+  AgentPulse:
+    type: application
+    platform: macOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: AgentPulse
+    resources:
+      - path: hooks
+      - path: mockup.html
+    info:
+      path: Info.plist
+    entitlements:
+      path: AgentPulse.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tejasbhardwaj.AgentPulse
+        PRODUCT_NAME: AgentPulse
+        GENERATE_INFOPLIST_FILE: NO
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 0.1.0
+    preBuildScripts:
+      - name: Install Hook Script
+        script: |
+          set -euo pipefail
+          mkdir -p "$HOME/.agentpulse/hooks"
+          if [ -f "$SRCROOT/hooks/approval-bridge.sh" ]; then
+            cp "$SRCROOT/hooks/approval-bridge.sh" "$HOME/.agentpulse/hooks/approval-bridge.sh"
+            chmod +x "$HOME/.agentpulse/hooks/approval-bridge.sh"
+          fi
+
+  AgentPulseTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: AgentPulseTests
+    dependencies:
+      - target: AgentPulse
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tejasbhardwaj.AgentPulseTests
+        GENERATE_INFOPLIST_FILE: YES
