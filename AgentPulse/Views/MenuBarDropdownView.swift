@@ -4,18 +4,23 @@ struct MenuBarDropdownView: View {
     @EnvironmentObject var vm: AgentPulseViewModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private var fixedSnapshotClock: String {
+    @State private var liveDotOpacity: Double = 1.0
+
+    private var elapsedText: String {
         if ProcessInfo.processInfo.environment["AGENTPULSE_SNAPSHOT_STATE"] != nil {
-            return "12:00:00"
+            return "3 sec ago"
         }
-        return Self.clockFormatter.string(from: Date())
+        let sec = max(0, Int(Date().timeIntervalSince(vm.lastRefreshDate)))
+        if sec < 60 { return "\(sec) sec ago" }
+        if sec < 3600 { return "\(sec / 60) min ago" }
+        return "\(sec / 3600)h ago"
     }
 
     var body: some View {
         VStack(spacing: 0) {
             header
 
-            Divider().overlay(Color.white.opacity(0.08))
+            Divider().overlay(Color(hex: 0xFFF5E6, alpha: 0.06))
 
             ScrollView {
                 VStack(spacing: 0) {
@@ -29,52 +34,76 @@ struct MenuBarDropdownView: View {
 
                     if !vm.pendingApprovals.isEmpty {
                         ApprovalsSection()
+
+                        sectionDivider
                     }
 
                     OrbitalAgentsSection()
+
+                    sectionDivider
+
                     TaskProgressSection()
+
+                    sectionDivider
+
                     FileActivitySection()
                 }
             }
             .frame(maxHeight: 560)
             .background(Color(hex: 0x242220))
 
-            Divider().overlay(Color.white.opacity(0.08))
+            Divider().overlay(Color(hex: 0xFFF5E6, alpha: 0.06))
             StatsBarView()
 
-            Divider().overlay(Color.white.opacity(0.08))
+            Divider().overlay(Color(hex: 0xFFF5E6, alpha: 0.06))
             footer
         }
         .frame(width: 400)
         .background(Color(hex: 0x242220))
     }
 
+    private var sectionDivider: some View {
+        Rectangle()
+            .fill(Color(hex: 0xFFF5E6, alpha: 0.06))
+            .frame(height: 1)
+            .padding(.horizontal, 20)
+    }
+
     private var header: some View {
         HStack(alignment: .firstTextBaseline) {
             Text("AgentPulse")
-                .font(.custom("Instrument Serif", size: 24))
+                .font(.custom("Instrument Serif", size: 22))
                 .foregroundColor(Color(hex: 0xF5F0E8))
+                .tracking(-0.3)
 
-            HStack(spacing: 6) {
+            HStack(spacing: 5) {
                 Circle()
                     .fill(Color(hex: 0xE8A84C))
-                    .frame(width: 6, height: 6)
-                    .opacity(reduceMotion ? 1 : 0.8)
+                    .frame(width: 5, height: 5)
+                    .opacity(liveDotOpacity)
+                    .onAppear {
+                        guard !reduceMotion else { return }
+                        withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
+                            liveDotOpacity = 0.3
+                        }
+                    }
+
                 Text("LIVE")
-                    .font(.custom("DM Sans", size: 10).weight(.semibold))
-                    .tracking(1.0)
+                    .font(.custom("DM Sans", size: 10).weight(.medium))
+                    .tracking(0.8)
                     .foregroundColor(Color(hex: 0xE8A84C))
             }
 
             Spacer()
 
-            Text(fixedSnapshotClock)
-                .font(.custom("JetBrains Mono", size: 10))
+            Text(elapsedText)
+                .font(.custom("JetBrains Mono", size: 10).weight(.light))
                 .foregroundColor(Color.white.opacity(0.3))
+                .tracking(0.5)
         }
         .padding(.horizontal, 20)
-        .padding(.top, 16)
-        .padding(.bottom, 12)
+        .padding(.top, 18)
+        .padding(.bottom, 14)
         .background(Color(hex: 0x242220))
     }
 
@@ -150,23 +179,23 @@ struct MenuBarDropdownView: View {
 
     private var footer: some View {
         HStack {
-            Spacer()
             Button("Quit") {
                 NSApplication.shared.terminate(nil)
             }
             .buttonStyle(.plain)
-            .font(.custom("DM Sans", size: 12).weight(.medium))
-            .foregroundColor(Color.white.opacity(0.5))
+            .font(.custom("DM Sans", size: 11).weight(.regular))
+            .foregroundColor(Color.white.opacity(0.15))
             .focusable()
-            .padding(.vertical, 8)
+
             Spacer()
+
+            Text("v1.0.0")
+                .font(.custom("JetBrains Mono", size: 9).weight(.light))
+                .foregroundColor(Color.white.opacity(0.15))
+                .tracking(0.5)
         }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
         .background(Color(hex: 0x242220))
     }
-
-    private static let clockFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm:ss"
-        return formatter
-    }()
 }

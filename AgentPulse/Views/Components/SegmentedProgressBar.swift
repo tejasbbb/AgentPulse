@@ -4,19 +4,27 @@ struct SegmentedProgressBar: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let tasks: [UnifiedTask]
 
+    @State private var runningOpacity: Double = 0.9
+
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 3) {
             if tasks.isEmpty {
                 RoundedRectangle(cornerRadius: 2)
-                    .fill(Color.white.opacity(0.15))
-                    .frame(height: 8)
+                    .fill(Color(hex: 0xFFF5E6, alpha: 0.06))
+                    .frame(height: 4)
             } else {
                 ForEach(tasks, id: \.id) { task in
                     RoundedRectangle(cornerRadius: 2)
                         .fill(color(for: task.status))
-                        .frame(height: 8)
-                        .opacity(task.status == .inProgress && !reduceMotion ? 0.85 : 1)
+                        .frame(height: 4)
+                        .opacity(opacity(for: task.status))
                 }
+            }
+        }
+        .onAppear {
+            guard !reduceMotion else { return }
+            withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
+                runningOpacity = 0.4
             }
         }
     }
@@ -28,7 +36,15 @@ struct SegmentedProgressBar: View {
         case .inProgress:
             return Color(hex: 0xE8A84C)
         case .pending:
-            return Color.white.opacity(0.25)
+            return Color(hex: 0xFFF5E6, alpha: 0.06)
+        }
+    }
+
+    private func opacity(for status: TaskStatus) -> Double {
+        switch status {
+        case .completed: return 0.7
+        case .inProgress: return runningOpacity
+        case .pending: return 1
         }
     }
 }
