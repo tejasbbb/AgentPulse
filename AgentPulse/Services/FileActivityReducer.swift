@@ -23,7 +23,9 @@ struct FileActivityReducer {
 
             for (path, metadataAny) in tracked {
                 let metadata = metadataAny as? [String: Any]
-                let backupTime = parseDate(metadata?["backupTime"] as? String) ?? snapshotDate
+                guard let backupTime = parseDate(metadata?["backupTime"] as? String) ?? snapshotDate else {
+                    continue
+                }
 
                 if let existingItem = state[path], existingItem.updatedAt >= backupTime {
                     continue

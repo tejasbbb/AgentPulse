@@ -6,7 +6,7 @@ enum AgentSource: String, Codable {
     case codex
 }
 
-enum AgentAccentColor: String, Codable {
+enum AgentAccentColor: String, Codable, CaseIterable {
     case amber
     case mint
     case coral

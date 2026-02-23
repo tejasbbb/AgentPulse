@@ -210,7 +210,7 @@ final class AgentPulseViewModel: ObservableObject {
         let todayMessages = claudeStats?
             .dailyActivity?
             .first(where: { entry in
-                guard let date = ISO8601DateFormatter.shortDate.date(from: entry.date) else { return false }
+                guard let date = parseShortISODate(entry.date) else { return false }
                 return calendar.isDate(date, inSameDayAs: today)
             })?
             .messageCount ?? 0
@@ -218,7 +218,7 @@ final class AgentPulseViewModel: ObservableObject {
         let todayToolCalls = claudeStats?
             .dailyActivity?
             .first(where: { entry in
-                guard let date = ISO8601DateFormatter.shortDate.date(from: entry.date) else { return false }
+                guard let date = parseShortISODate(entry.date) else { return false }
                 return calendar.isDate(date, inSameDayAs: today)
             })?
             .toolCallCount ?? 0
@@ -251,6 +251,12 @@ final class AgentPulseViewModel: ObservableObject {
 
         let allows = approvalDecisions.filter { $0 == .allow }.count
         stats.successRate = Double(allows) / Double(approvalDecisions.count)
+    }
+
+    private func parseShortISODate(_ value: String) -> Date? {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withFullDate]
+        return formatter.date(from: value)
     }
 
     private func evaluateFirstLaunch() {
@@ -336,12 +342,4 @@ final class AgentPulseViewModel: ObservableObject {
 
         stats = AggregateStats(activeAgents: agents.count, totalMessages: 47, totalToolCalls: 132, successRate: 0.86)
     }
-}
-
-private extension ISO8601DateFormatter {
-    static let shortDate: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withFullDate]
-        return formatter
-    }()
 }

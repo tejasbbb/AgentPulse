@@ -49,7 +49,7 @@ actor ClaudeDataService {
 
     func loadAllAgents() -> [UnifiedAgent] {
         let teams = loadTeams()
-        var colors = AgentAccentColor.allCases
+        let colors = AgentAccentColor.allCases
         var idx = 0
 
         return teams.flatMap { team in

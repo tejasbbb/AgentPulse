@@ -59,7 +59,7 @@ final class CodexDataService {
 
     func loadConfig() -> CodexConfig {
         let configURL = rootURL.appendingPathComponent("config.toml", isDirectory: false)
-        guard let content = try? String(contentsOf: configURL) else {
+        guard let content = try? String(contentsOf: configURL, encoding: .utf8) else {
             return .empty
         }
         return parseConfig(content: content)

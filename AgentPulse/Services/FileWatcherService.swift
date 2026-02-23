@@ -59,12 +59,7 @@ final class FileWatcherService {
 
         let watcher = Unmanaged<FileWatcherService>.fromOpaque(info).takeUnretainedValue()
 
-        let pathsArray: [String]
-        if let eventPaths {
-            pathsArray = (unsafeBitCast(eventPaths, to: NSArray.self) as? [String]) ?? []
-        } else {
-            pathsArray = []
-        }
+        let pathsArray = (unsafeBitCast(eventPaths, to: NSArray.self) as? [String]) ?? []
 
         let limitedPaths = Array(pathsArray.prefix(Int(numEvents)))
         watcher.onChange?(limitedPaths)

@@ -24,8 +24,10 @@ final class ApprovalService {
         refreshPending()
 
         timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
-            self?.refreshPending()
-            self?.cleanupStalePending()
+            Task { @MainActor [weak self] in
+                self?.refreshPending()
+                self?.cleanupStalePending()
+            }
         }
     }
 
@@ -105,10 +107,10 @@ final class ApprovalService {
         decoder.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
             let raw = try container.decode(String.self)
-            if let date = ISO8601DateFormatter.fractional.date(from: raw) {
+            if let date = parseISODate(raw, allowFractional: true) {
                 return date
             }
-            if let date = ISO8601DateFormatter.standard.date(from: raw) {
+            if let date = parseISODate(raw, allowFractional: false) {
                 return date
             }
             throw DecodingError.dataCorruptedError(
@@ -125,18 +127,12 @@ final class ApprovalService {
         encoder.dateEncodingStrategy = .iso8601
         return encoder
     }
-}
 
-private extension ISO8601DateFormatter {
-    static let fractional: ISO8601DateFormatter = {
+    nonisolated private static func parseISODate(_ value: String, allowFractional: Bool) -> Date? {
         let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
-
-    static let standard: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime]
-        return formatter
-    }()
+        formatter.formatOptions = allowFractional
+            ? [.withInternetDateTime, .withFractionalSeconds]
+            : [.withInternetDateTime]
+        return formatter.date(from: value)
+    }
 }
