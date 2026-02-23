@@ -141,10 +141,15 @@ brew install xcodegen
 ### Build
 
 ```bash
-git clone https://github.com/tejasbbb/AgentPulse.git
-cd AgentPulse
+cd /Users/tejasbhardwaj/Desktop/AgentPulse
 xcodegen generate
 xcodebuild -project AgentPulse.xcodeproj -scheme AgentPulse -configuration Debug build
+```
+
+### Test
+
+```bash
+xcodebuild -project AgentPulse.xcodeproj -scheme AgentPulseTests -configuration Debug test
 ```
 
 ### Run
@@ -154,6 +159,23 @@ open "$(xcodebuild -project AgentPulse.xcodeproj -scheme AgentPulse \
   -configuration Debug -showBuildSettings \
   | grep -m1 BUILT_PRODUCTS_DIR | awk '{print $3}')/AgentPulse.app"
 ```
+
+### Snapshot Modes (Visual QA)
+
+Use deterministic UI modes for screenshot comparison:
+
+```bash
+AGENTPULSE_SNAPSHOT_STATE=empty open /path/to/AgentPulse.app
+AGENTPULSE_SNAPSHOT_STATE=active open /path/to/AgentPulse.app
+AGENTPULSE_SNAPSHOT_STATE=approval open /path/to/AgentPulse.app
+```
+
+Visual QA assets and checklist live in:
+
+- `/Users/tejasbhardwaj/Desktop/AgentPulse/docs/visual-baseline/`
+- `/Users/tejasbhardwaj/Desktop/AgentPulse/docs/visual-current/`
+- `/Users/tejasbhardwaj/Desktop/AgentPulse/docs/visual-checklist.md`
+- `/Users/tejasbhardwaj/Desktop/AgentPulse/docs/visual-notes.md`
 
 ### First Launch
 
@@ -203,7 +225,7 @@ See [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) for the full 29-file brea
 
 ## Status
 
-**Pre-implementation** --- the corrected plan and design mockup are complete. Implementation is next.
+**Implemented (v2.1)** --- core app architecture, policy-aware hook bridge, semantic hook installer merge, incremental JSONL ingestion, FSEvents runtime wiring, SwiftUI sections, and visual QA artifacts are now in the repository.
 
 ---
 
