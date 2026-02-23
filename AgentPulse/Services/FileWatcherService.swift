@@ -2,7 +2,7 @@ import CoreServices
 import Foundation
 
 final class FileWatcherService {
-    typealias ChangeHandler = ([String]) -> Void
+    typealias ChangeHandler = @Sendable ([String]) -> Void
 
     private var stream: FSEventStreamRef?
     private let queue = DispatchQueue(label: "com.agentpulse.fsevents", qos: .utility)

@@ -10,8 +10,13 @@ struct AgentPulseApp: App {
                 .environmentObject(viewModel)
                 .frame(width: 400)
         } label: {
-            PulsingOrbIcon(badgeCount: viewModel.pendingApprovalCount)
-                .frame(width: 18, height: 18)
+            HStack(spacing: 4) {
+                PulsingOrbIcon(badgeCount: viewModel.pendingApprovalCount)
+                    .frame(width: 14, height: 14)
+                Text("AP")
+                    .font(.system(size: 10, weight: .semibold))
+            }
+            .foregroundStyle(.primary)
         }
         .menuBarExtraStyle(.window)
     }
