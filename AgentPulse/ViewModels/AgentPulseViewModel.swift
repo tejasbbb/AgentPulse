@@ -9,6 +9,8 @@ final class AgentPulseViewModel: ObservableObject {
     @Published var stats: AggregateStats = .empty
     @Published var pendingApprovals: [ApprovalRequest] = []
 
+    @Published var lastRefreshDate: Date = Date()
+
     @Published var isFirstLaunch = false
     @Published var showRestartNotice = false
     @Published var installError: String?
@@ -140,6 +142,7 @@ final class AgentPulseViewModel: ObservableObject {
     }
 
     private func fullRefresh() async {
+        lastRefreshDate = Date()
         agents = await claudeService.loadAllAgents()
 
         let codexGlobal = codexService.loadGlobalState()
@@ -164,6 +167,7 @@ final class AgentPulseViewModel: ObservableObject {
     }
 
     private func partialRefresh(changedPaths: [String]) async {
+        lastRefreshDate = Date()
         let hasProjectChange = changedPaths.contains { $0.contains("/.claude/projects/") && $0.hasSuffix(".jsonl") }
         let hasTeamsChange = changedPaths.contains { $0.contains("/.claude/teams/") }
         let hasCodexChange = changedPaths.contains { $0.contains("/.codex/") }

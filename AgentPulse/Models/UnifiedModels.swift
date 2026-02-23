@@ -59,11 +59,11 @@ enum HeatLevel: String, Codable {
     var color: Color {
         switch self {
         case .hot:
-            return Color(hex: 0xE07A5F)
-        case .warm:
             return Color(hex: 0xE8A84C)
+        case .warm:
+            return Color(hex: 0xE07A5F).opacity(0.6)
         case .cool:
-            return Color.white.opacity(0.35)
+            return Color.white.opacity(0.15)
         }
     }
 }

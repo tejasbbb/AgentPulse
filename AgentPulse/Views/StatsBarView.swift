@@ -9,12 +9,13 @@ struct StatsBarView: View {
             divider
             stat(value: "\(vm.stats.totalMessages)", label: "MESSAGES", color: Color(hex: 0xF5F0E8))
             divider
-            stat(value: "\(vm.stats.totalToolCalls)", label: "TOOLS", color: Color(hex: 0xF5F0E8))
+            stat(value: "\(vm.stats.totalToolCalls)", label: "TOOL CALLS", color: Color(hex: 0xF5F0E8))
             divider
             stat(value: successText, label: "SUCCESS", color: Color(hex: 0x7ECBA1))
         }
-        .padding(.vertical, 10)
-        .background(Color.black.opacity(0.18))
+        .padding(.vertical, 14)
+        .padding(.horizontal, 20)
+        .background(Color.black.opacity(0.15))
     }
 
     private var successText: String {
@@ -27,20 +28,23 @@ struct StatsBarView: View {
     private func stat(value: String, label: String, color: Color) -> some View {
         VStack(spacing: 2) {
             Text(value)
-                .font(.custom("Instrument Serif", size: 21))
+                .font(.custom("Instrument Serif", size: 24))
                 .foregroundColor(color)
+                .lineSpacing(1)
+                .tracking(-0.5)
 
             Text(label)
-                .font(.custom("DM Sans", size: 9).weight(.medium))
+                .font(.custom("DM Sans", size: 9).weight(.regular))
                 .tracking(0.8)
-                .foregroundColor(Color.white.opacity(0.45))
+                .foregroundColor(Color.white.opacity(0.3))
+                .textCase(.uppercase)
         }
         .frame(maxWidth: .infinity)
     }
 
     private var divider: some View {
         Rectangle()
-            .fill(Color.white.opacity(0.08))
-            .frame(width: 1, height: 24)
+            .fill(Color(hex: 0xFFF5E6, alpha: 0.06))
+            .frame(width: 1, height: 28)
     }
 }

@@ -9,11 +9,11 @@ struct OrbitalAgentsSection: View {
     ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 14) {
             Text("AGENTS")
-                .font(.custom("DM Sans", size: 10).weight(.semibold))
-                .tracking(1.0)
-                .foregroundColor(Color.white.opacity(0.35))
+                .font(.custom("DM Sans", size: 10).weight(.medium))
+                .tracking(1.2)
+                .foregroundColor(Color.white.opacity(0.3))
 
             if vm.agents.isEmpty {
                 Text("No active agents")
@@ -29,6 +29,7 @@ struct OrbitalAgentsSection: View {
             }
         }
         .padding(.horizontal, 20)
-        .padding(.top, 14)
+        .padding(.top, 16)
+        .padding(.bottom, 12)
     }
 }
